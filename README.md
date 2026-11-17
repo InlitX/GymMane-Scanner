@@ -7,7 +7,7 @@ Food barcode scanner app for GymMane. Scans product barcodes, retrieves nutritio
 
 GymMane Scanner is a tiny Android app that turns the barcode on any food package into a ready-to-use food entry. No typing, no searching, no copying numbers by hand.
 
-> **Heads up:** This is an independent, self-developed project. It is **not affiliated with, endorsed by, or connected to GymMane** in any way. It simply produces food data in a format GymMane can read.
+> **Heads up:** This is an independent, self-developed project. It is **not affiliated with, endorsed by, or connected to [GymMane](https://github.com/InlitX/GymMane)** in any way. It simply produces food data in a format GymMane can read.
 
 ---
 
