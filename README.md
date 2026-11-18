@@ -33,18 +33,8 @@ GymMane Scanner is a tiny Android app that turns the barcode on any food package
 
 1. **Scan** the barcode on your food.
 2. **Create the food**: the app builds a complete entry with all nutrition values.
-3. **Send it to GymMane**. How depends on your GymMane version:
-
-### GymMane 2.3.
-
-1. In GymMane Scanner, tap **Copy**.
-2. Open GymMane and tap create a food **Ask AI**.
-3. **Paste** the copied code. Done.
-
-### GymMane 2.4 and newer ✨
-
-1. In GymMane Scanner, tap **Open in GymMane**.
-2. That's it. GymMane opens with the food already filled in, ready to save.
+3. **Send it to GymMane**. Tap „Send to GymMane“ and select GymMane in the opening android share dialog
+4. That's it. GymMane opens with the food already filled in, ready to save.
 
 ---
 
@@ -54,6 +44,8 @@ GymMane Scanner is a tiny Android app that turns the barcode on any food package
 2. Open the file on your Android phone.
 3. If asked, allow installing apps from this source.
 4. Open the app and start scanning.
+
+5. **Please make sure to have GymMane v2.4 or newer installed, otherwise it wont work here :(**
 
 ---
 
