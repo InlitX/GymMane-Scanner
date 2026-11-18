@@ -24,7 +24,7 @@ GymMane Scanner is a tiny Android app that turns the barcode on any food package
 
 | Scan | Product | Send |
 |:---:|:---:|:---:|
-| ![Scan screen](screenshots/scan.png) | ![Product screen](screenshots/product.png) | ![Send to GymMane](screenshots/send.png) |
+| <img src="screenshots/scan.png" width="250" /> | <img src="screenshots/food.png" width="250" /> | <img src="screenshots/Share.png" width="250" /> |
 
 
 ---
