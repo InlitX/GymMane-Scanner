@@ -60,3 +60,11 @@ GymMane Scanner is a tiny Android app that turns the barcode on any food package
 ## 💬 Feedback
 
 Found a bug or have an idea? Open an [issue](../../issues). I'm happy to hear from you.
+
+---
+
+## ⚠️ Warning
+
+Google PlayProtect is currently still warning before installing the app or updates. No worries: there is no virus in it <br>
+If you feel unsafe visit [VirusTotal Scan](https://www.virustotal.com/gui/url/d3941defa825daecf457eb560d3721394997744f0f1b921d1ded4ad7651be2bf?nocache=1) <br>
+I already contacted Google about this and the problem will be solved soon
