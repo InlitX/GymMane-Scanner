@@ -1,0 +1,22 @@
+<resources>
+    <string name="update_section">Updates</string>
+    <string name="update_auto">Check for updates automatically</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_available">New version %1$s</string>
+    <string name="update_whats_new">What’s new?</string>
+    <string name="update_action">Update</string>
+    <string name="update_later">Later</string>
+    <string name="update_done">Continue</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_current">You are using the latest version.</string>
+    <string name="update_no_apk">No compatible published APK is available.</string>
+    <string name="update_no_public_release">No public GitHub release is available yet.</string>
+    <string name="update_rate_limit">GitHub is limiting requests. Please try again later.</string>
+    <string name="update_check_failed">Could not check for updates. Check your connection and try again later.</string>
+    <string name="update_download_failed">Download or APK validation failed. The file must match this app, version and signing key. Please try again.</string>
+    <string name="update_permission_denied">Installation is not allowed. Start the update again and allow installations from this source.</string>
+    <string name="update_install_failed">Could not open the Android installer. Please start the update again.</string>
+    <string name="update_no_notes">No release notes were provided for this version.</string>
+    <string name="update_local_notes">Check for updates inside the app and install them using the Android installer. Settings now include automatic and manual update checks.</string>
+</resources>

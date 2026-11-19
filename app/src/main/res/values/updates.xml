@@ -1,0 +1,22 @@
+<resources>
+    <string name="update_section">Updates</string>
+    <string name="update_auto">Automatisch nach Updates suchen</string>
+    <string name="update_check">Nach Updates suchen</string>
+    <string name="update_checking">Wird geprüft …</string>
+    <string name="update_available">Neue Version %1$s</string>
+    <string name="update_whats_new">Was ist neu?</string>
+    <string name="update_action">Aktualisieren</string>
+    <string name="update_later">Später</string>
+    <string name="update_done">Weiter</string>
+    <string name="update_downloading">Update wird heruntergeladen …</string>
+    <string name="update_current">Du verwendest die aktuelle Version.</string>
+    <string name="update_no_apk">Keine passende veröffentlichte APK verfügbar.</string>
+    <string name="update_no_public_release">Auf GitHub ist noch keine öffentliche Veröffentlichung verfügbar.</string>
+    <string name="update_rate_limit">GitHub begrenzt die Anfragen. Bitte später erneut versuchen.</string>
+    <string name="update_check_failed">Updates konnten nicht geprüft werden. Bitte Verbindung prüfen und später erneut versuchen.</string>
+    <string name="update_download_failed">Download oder APK-Prüfung fehlgeschlagen. Die Datei muss zu dieser App, ihrer Version und ihrem Signierschlüssel passen. Bitte erneut versuchen.</string>
+    <string name="update_permission_denied">Installation nicht erlaubt. Du kannst das Update erneut starten und die Installation aus dieser Quelle erlauben.</string>
+    <string name="update_install_failed">Der Android-Installer konnte nicht geöffnet werden. Bitte das Update erneut starten.</string>
+    <string name="update_no_notes">Für diese Version wurden keine Versionshinweise hinterlegt.</string>
+    <string name="update_local_notes">Updates lassen sich jetzt direkt in der App prüfen und über den Android-Installer installieren. Die Einstellungen enthalten eine automatische und eine manuelle Updateprüfung.</string>
+</resources>

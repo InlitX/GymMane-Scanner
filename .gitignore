@@ -1,0 +1,76 @@
+# Generated Android/Gradle files and local IDE state
+.gradle/
+.kotlin/
+.idea/
+.vscode/
+**/build/
+.cxx/
+.externalNativeBuild/
+captures/
+local.properties
+*.iml
+.verification/
+
+# Local credentials and signing keys (publish only the empty example)
+keystore.properties
+*.keystore.properties
+key.properties
+secrets.properties
+credentials.properties
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+google-services.json
+service-account*.json
+service_account*.json
+*-firebase-adminsdk-*.json
+.aws/
+.ssh/
+
+# Local assistant configuration and session data
+.agents/
+.codex/
+
+# Release archives and R8 mappings stay local; APKs belong in GitHub Releases
+/artifacts/
+*.apk
+*.aab
+*.apks
+*.ap_
+mapping.txt
+*-mapping.txt
+
+# Crash dumps, logs, app data, exports and backups
+*.hprof
+*.heapdump
+hs_err_pid*
+replay_pid*
+*.dmp
+*.log
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.bak
+*.tmp
+*.swp
+*~
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

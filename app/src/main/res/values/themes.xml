@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.GymManeScanner" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#0C0D0C</item>
+        <item name="android:colorAccent">#DCA17F</item>
+    </style>
+</resources>
