@@ -1,4 +1,4 @@
-package de.gymmane.scanner.ui
+﻿package de.gymmane.scanner.ui
 
 import android.database.ContentObserver
 import android.os.Handler

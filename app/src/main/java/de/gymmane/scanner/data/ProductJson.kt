@@ -32,20 +32,11 @@ object ProductJson {
         if (root.optInt("status") == 0) throw ProductNotFound()
         val p = root.optJSONObject("product") ?: throw InvalidProductResponse()
         val n = p.optJSONObject("nutriments") ?: JSONObject()
-        val servingLabel = p.text("serving_size")
-        val parsedServing = Regex("(?i)([0-9]+(?:[.,][0-9]+)?)\\s*(g|ml)\\b")
-            .findAll(servingLabel.orEmpty()).lastOrNull()
-        val servingUnit = p.text("serving_quantity_unit")?.lowercase()
-            ?: parsedServing?.groupValues?.get(2)?.lowercase()
-        val unit = if (p.text("nutrition_data_per") == "100ml" || servingUnit == "ml" ||
-            p.text("product_quantity_unit")?.lowercase() in listOf("ml", "l")) QuantityUnit.ML else QuantityUnit.G
-        val servingAmount = if (servingUnit == unit.symbol) {
-            p.number("serving_quantity") ?: parsedServing?.groupValues?.get(1)?.let(::parseNumber)
-        } else null
         val perServing = nutrients(n, "serving")
+        val serving = OffServing.read(p, perServing.hasValues)
         val base = nutrients(n, "100g")
-        val per100 = if (servingAmount != null && servingAmount > 0) {
-            base.withFallback(perServing.scaled(100 / servingAmount))
+        val per100 = if (serving.nutritionAmount != null) {
+            base.withFallback(perServing.scaled(100 / serving.nutritionAmount))
         } else base
         return Product(
             id = barcode, barcode = barcode,
@@ -61,8 +52,8 @@ object ProductJson {
                     ?.removePrefix("de:")?.replace('-', ' ')?.replaceFirstChar { it.titlecase() }
             } ?: p.text("categories")?.split(',')?.lastOrNull()?.trim(),
             imageUrl = (p.text("image_front_url") ?: p.text("image_url"))?.takeIf { it.startsWith("https://") },
-            servingLabel = servingLabel, servingAmount = servingAmount?.takeIf { it > 0 },
-            unit = unit, per100 = per100, perServing = perServing,
+            servingLabel = serving.label, servingAmount = serving.amount,
+            unit = serving.unit, per100 = per100, perServing = perServing,
         )
     }
 
@@ -90,7 +81,7 @@ object ProductJson {
     fun decode(body: String): Product = JSONObject(body).let {
         Product(id = it.getString("id"), barcode = it.text("barcode"), name = it.getString("name"),
             brand = it.text("brand"), category = it.text("category"), imageUrl = it.text("imageUrl"),
-            localImage = it.text("localImage"), servingLabel = it.text("servingLabel"),
+            localImage = it.text("localImage"), servingLabel = Serving.label(it.text("servingLabel")),
             servingAmount = it.number("servingAmount"), unit = QuantityUnit.valueOf(it.getString("unit")),
             per100 = decodeNutrients(it.getJSONObject("per100")), perServing = decodeNutrients(it.getJSONObject("perServing")),
             manual = it.optBoolean("manual"), fetchedAt = it.getLong("fetchedAt"),

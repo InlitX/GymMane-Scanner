@@ -63,6 +63,8 @@ private fun MissingImage() {
 fun ProductScreen(product: Product, cached: Boolean, loading: Boolean, error: String?, onCopy: (String, String) -> Unit, onRefresh: () -> Unit, onScan: () -> Unit, onEdit: () -> Unit, onSend: ((Product) -> Unit)? = null) {
     var portion by rememberSaveable(product.id) { mutableStateOf(false) }
     var amountText by rememberSaveable(product.id, product.fetchedAt) { mutableStateOf(product.servingAmount?.let(T::number).orEmpty()) }
+    val originalServing = T.text(Serving.name(product))
+    var servingText by rememberSaveable(product.id, product.fetchedAt) { mutableStateOf(originalServing) }
     var details by rememberSaveable(product.id) { mutableStateOf(false) }
     var expanded by rememberSaveable(product.id) { mutableStateOf(false) }
     val amount = parseNumber(amountText)?.takeIf { it > 0 }
@@ -112,9 +114,20 @@ fun ProductScreen(product: Product, cached: Boolean, loading: Boolean, error: St
             item {
                 AnimatedVisibility(details, enter = Motion.enter(), exit = Motion.exit()) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(amountText, { amountText = it.take(12) }, label = { Text(T.format("Portionsgröße in %1\$s", product.unit.symbol)) },
+                    OutlinedTextField(servingText, { servingText = it.take(100) },
+                        label = { Text(T.text("Bezeichnung, z. B. 1 Messlöffel")) },
+                        singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(amountText, {
+                        amountText = it.take(12)
+                        if (parseNumber(amountText) != product.servingAmount && servingText == originalServing) {
+                            servingText = T.text(Serving.DEFAULT_NAME)
+                        }
+                    }, label = { Text(T.format("Portionsgröße in %1\$s", product.unit.symbol)) },
                         singleLine = true, isError = invalid, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
-                    CopyField(T.text("Portion"), product.servingLabel, onCopy, Modifier.fillMaxWidth())
+                    if (amount == null) Text(T.text("Ohne Portionsmenge wird eine Bezugsportion von 100 g bzw. 100 ml geteilt."),
+                        color = Muted, style = MaterialTheme.typography.bodySmall)
+                    CopyField(T.text("Portion"), if (amount == null) T.text(Serving.DEFAULT_NAME)
+                        else Serving.label(servingText) ?: T.text(Serving.DEFAULT_NAME), onCopy, Modifier.fillMaxWidth())
                     CopyField(if (product.unit == QuantityUnit.G) T.text("Gramm") else T.text("Milliliter"), amount?.let(T::number), onCopy, Modifier.fillMaxWidth())
                     CopyField(T.text("Kategorie"), product.category, onCopy, Modifier.fillMaxWidth())
                     CopyField("Barcode", product.barcode, onCopy, Modifier.fillMaxWidth())
@@ -127,8 +140,9 @@ fun ProductScreen(product: Product, cached: Boolean, loading: Boolean, error: St
         }
         if (onSend != null) Surface(color = Background) {
             PrimaryButton(T.text("An GymMane senden"), {
-                val selected = if (amount != null && amountText != product.servingAmount?.let(T::number).orEmpty())
-                    product.copy(servingAmount = amount, servingLabel = "${T.number(amount)} ${product.unit.symbol}") else product
+                val selected = product.copy(
+                    servingAmount = if (amountText == product.servingAmount?.let(T::number).orEmpty()) product.servingAmount else amount,
+                    servingLabel = Serving.label(servingText))
                 onSend(selected)
             }, Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp), enabled = !loading && !invalid, icon = Icons.AutoMirrored.Outlined.Send)
         }

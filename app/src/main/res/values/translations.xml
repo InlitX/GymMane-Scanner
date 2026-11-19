@@ -26,6 +26,13 @@
     <string name="text_close_details">Details schließen</string>
     <string name="text_serving_product_details">Portion &amp; Produktdetails</string>
     <string name="text_serving">Portion</string>
+    <string name="text_one_serving">1 Portion</string>
+    <string name="text_one_can">1 Dose</string>
+    <string name="text_one_bottle">1 Flasche</string>
+    <string name="text_one_pot">1 Becher</string>
+    <string name="text_one_glass">1 Glas</string>
+    <string name="text_one_pack">1 Packung</string>
+    <string name="text_reference_serving">Ohne Portionsmenge wird eine Bezugsportion von 100 g bzw. 100 ml geteilt.</string>
     <string name="text_grams">Gramm</string>
     <string name="text_milliliters">Milliliter</string>
     <string name="text_category">Kategorie</string>

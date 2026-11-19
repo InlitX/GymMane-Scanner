@@ -48,6 +48,54 @@ class ImportUiTest {
         }
     }
 
+    @Test fun changingCanVolumeUsesNeutralNameAndKeepsPer100Nutrition() {
+        var sent: Product? = null
+        val product = Product("can", name = "Drink", servingAmount = 500.0, servingLabel = "1 Dose",
+            unit = QuantityUnit.ML, per100 = Nutrients(2.0, 0.0, .9, 0.0))
+        compose.setContent { GymManeTheme { ProductScreen(product, false, false, null, { _, _ -> }, {}, {}, {}, { sent = it }) } }
+        compose.onNodeWithText("Portion & Produktdetails").performScrollTo().performClick()
+        compose.onNodeWithText("Portionsgröße in ml").performScrollTo().performTextReplacement("250")
+        compose.onNodeWithText("An GymMane senden").performClick()
+        compose.runOnIdle {
+            val f = JSONObject(GymManeImport.serialize(sent!!)).getJSONObject("food")
+            assertEquals("1 Portion", f.getString("serving_name"))
+            assertEquals(250.0, f.getDouble("grams"), 0.0)
+            assertEquals(.9, f.getJSONObject("per100").getDouble("carbs"), 0.0)
+        }
+    }
+
+    @Test fun portionNameCanBeEditedIndependentlyOfItsVolume() {
+        var sent: Product? = null
+        val product = Product("can", name = "Drink", servingAmount = 500.0, servingLabel = "500 ml",
+            unit = QuantityUnit.ML, per100 = Nutrients(2.0, 0.0, .9, 0.0))
+        compose.setContent { GymManeTheme { ProductScreen(product, true, false, null, { _, _ -> }, {}, {}, {}, { sent = it }) } }
+        compose.onNodeWithText("Portion & Produktdetails").performScrollTo().performClick()
+        compose.onNodeWithText("Bezeichnung, z. B. 1 Messlöffel").performScrollTo().performTextReplacement("1 Dose")
+        compose.onNodeWithText("An GymMane senden").performClick()
+        compose.runOnIdle {
+            val f = JSONObject(GymManeImport.serialize(sent!!)).getJSONObject("food")
+            assertEquals("1 Dose", f.getString("serving_name"))
+            assertEquals(500.0, f.getDouble("grams"), 0.0)
+        }
+    }
+
+    @Test fun clearingAmountDoesNotSendAnOldContainerWeight() {
+        var sent: Product? = null
+        val product = Product("can", name = "Drink", servingAmount = 500.0, servingLabel = "1 Dose",
+            unit = QuantityUnit.ML, per100 = Nutrients(2.0, 0.0, .9, 0.0))
+        compose.setContent { GymManeTheme { ProductScreen(product, false, false, null, { _, _ -> }, {}, {}, {}, { sent = it }) } }
+        compose.onNodeWithText("Portion & Produktdetails").performScrollTo().performClick()
+        compose.onNodeWithText("Portionsgröße in ml").performScrollTo().performTextClearance()
+        compose.onNodeWithText("An GymMane senden").performClick()
+        compose.runOnIdle {
+            assertNull(sent!!.servingAmount)
+            val f = JSONObject(GymManeImport.serialize(sent!!)).getJSONObject("food")
+            assertEquals("1 Portion", f.getString("serving_name"))
+            assertEquals(100.0, f.getDouble("grams"), 0.0)
+            assertTrue(f.getBoolean("liquid"))
+        }
+    }
+
     @Test fun shareIntentContainsExactJsonWithoutChangingClipboard() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         compose.setContent { Text("Share test") }

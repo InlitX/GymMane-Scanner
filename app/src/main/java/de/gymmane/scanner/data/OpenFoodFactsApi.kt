@@ -29,7 +29,7 @@ class OpenFoodFactsApi(
     suspend fun product(barcode: String): Product {
         val url = baseUrl.newBuilder().addPathSegments("api/v2/product").addPathSegment("$barcode.json")
             .addQueryParameter("lc", "de")
-            .addQueryParameter("fields", "code,product_name,product_name_de,brands,categories,categories_tags_de,categories_hierarchy,image_front_url,image_url,serving_size,serving_quantity,serving_quantity_unit,product_quantity_unit,nutrition_data_per,nutriments")
+            .addQueryParameter("fields", "code,product_name,product_name_de,brands,categories,categories_tags_de,categories_hierarchy,image_front_url,image_url,serving_size,serving_quantity,serving_quantity_unit,quantity,product_quantity,product_quantity_unit,packagings,nutrition_data_per,nutriments")
             .build()
         val request = Request.Builder().url(url)
             .header("User-Agent", "GymManeScanner/1.0.0 (Android; independent companion app)")

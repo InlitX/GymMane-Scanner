@@ -25,7 +25,7 @@ fun ManualScreen(editing: Product?, initialBarcode: String, loading: Boolean, er
     var name by rememberSaveable(key) { mutableStateOf(editing?.takeIf { it.nameKnown }?.let { if (forSending) GymManeImport.foodName(it) else it.name }.orEmpty()) }
     var category by rememberSaveable(key) { mutableStateOf(editing?.category.orEmpty()) }
     var barcode by rememberSaveable(key) { mutableStateOf(editing?.barcode ?: initialBarcode) }
-    var serving by rememberSaveable(key) { mutableStateOf(editing?.servingLabel.orEmpty()) }
+    var serving by rememberSaveable(key) { mutableStateOf(editing?.let { T.text(Serving.name(it)) }.orEmpty()) }
     var amount by rememberSaveable(key) { mutableStateOf(editing?.servingAmount?.let(::editableNumber) ?: if (forSending) "100" else "") }
     var ml by rememberSaveable(key) { mutableStateOf(editing?.unit == QuantityUnit.ML) }
     val original = editing?.per100 ?: Nutrients()
@@ -59,7 +59,16 @@ fun ManualScreen(editing: Product?, initialBarcode: String, loading: Boolean, er
         item(key = "editor_6") { EditorField(T.text("Barcode (optional)"), barcode, { barcode = it.filter(Char::isDigit).take(13) }, numeric = true, enabled = editing == null, modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
         item(key = "editor_7") { SectionLabel(T.text("Portion (optional)"), modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
         item(key = "editor_8") { EditorField(T.text("Bezeichnung, z. B. 1 Messlöffel"), serving, { serving = it.take(100) }, modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
-        item(key = "editor_9") { EditorField(T.text("Portionsgröße"), amount, { amount = it.take(12) }, true, if (ml) "ml" else "g", modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
+        item(key = "editor_9") {
+            EditorField(T.text("Portionsgröße"), amount, {
+                amount = it.take(12)
+                if (editing != null && parseNumber(amount) != editing.servingAmount && serving == T.text(Serving.name(editing))) {
+                    serving = T.text(Serving.DEFAULT_NAME)
+                }
+            }, true, if (ml) "ml" else "g", modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true)))
+            if (parseNumber(amount)?.takeIf { it > 0 } == null) Text(T.text("Ohne Portionsmenge wird eine Bezugsportion von 100 g bzw. 100 ml geteilt."),
+                color = Muted, style = MaterialTheme.typography.bodySmall)
+        }
         item(key = "editor_10") { SectionLabel(T.text("Weitere Nährwerte (optional)"), color = Apricot, modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
         item(key = "editor_11") { EditorField(T.text("Ballaststoffe"), fiber, { fiber = it.take(12) }, true, "g", modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
         item(key = "editor_12") { EditorField(T.text("Zucker"), sugar, { sugar = it.take(12) }, true, "g", modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
@@ -76,7 +85,7 @@ fun ManualScreen(editing: Product?, initialBarcode: String, loading: Boolean, er
                     val base = editing ?: Product(id = normalized ?: "manual:${UUID.randomUUID()}", name = name.trim())
                     onSave(base.copy(
                         barcode = normalized, name = name.trim(), category = category.trim().ifEmpty { null },
-                        servingLabel = serving.trim().ifEmpty { null }, servingAmount = parseNumber(amount),
+                        servingLabel = Serving.label(serving), servingAmount = parseNumber(amount),
                         unit = if (ml) QuantityUnit.ML else QuantityUnit.G,
                         per100 = original.copy(kcal = parseNumber(kcal), protein = parseNumber(protein), carbs = parseNumber(carbs), fat = parseNumber(fat),
                             fiber = parseNumber(fiber), sugar = parseNumber(sugar), sodium = parseNumber(sodium)),

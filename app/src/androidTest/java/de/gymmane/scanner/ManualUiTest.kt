@@ -3,6 +3,8 @@ package de.gymmane.scanner
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import de.gymmane.scanner.domain.Product
+import de.gymmane.scanner.domain.Nutrients
+import de.gymmane.scanner.domain.QuantityUnit
 import de.gymmane.scanner.ui.ManualScreen
 import de.gymmane.scanner.ui.theme.GymManeTheme
 import org.junit.Assert.*
@@ -30,6 +32,23 @@ class ManualUiTest {
             assertEquals(0.0, saved!!.per100.fat!!, 0.0)
             assertNull(saved!!.per100.sodium)
             assertNull(saved!!.barcode)
+        }
+    }
+
+    @Test fun editingServingAmountDoesNotKeepAnOldWholeCanName() {
+        var saved: Product? = null
+        val product = Product("can", name = "Drink", servingLabel = "1 Dose", servingAmount = 500.0,
+            unit = QuantityUnit.ML, manual = true, per100 = Nutrients(2.0, 0.0, .9, 0.0))
+        compose.setContent { GymManeTheme { ManualScreen(product, "", false, null, { saved = it }, {}) } }
+        compose.onNodeWithText("Optionale Angaben").performScrollTo().performClick()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Portionsgröße"))
+        compose.onNodeWithText("Portionsgröße").performTextReplacement("250")
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Lebensmittel speichern"))
+        compose.onNodeWithText("Lebensmittel speichern").performClick()
+        compose.runOnIdle {
+            assertEquals("1 Portion", saved!!.servingLabel)
+            assertEquals(250.0, saved!!.servingAmount!!, 0.0)
+            assertEquals(product.per100, saved!!.per100)
         }
     }
 }

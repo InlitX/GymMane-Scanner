@@ -37,8 +37,7 @@ object GymManeImport {
             optional("cholesterol", n.cholesterol?.takeIf { it.known() }?.times(1000))
         }
         val amount = product.servingAmount ?: 100.0
-        val serving = if (product.servingAmount == null) "100 g" else product.servingLabel?.trim()?.takeIf { it.isNotEmpty() }
-            ?: "${formatNumber(amount)} ${product.unit.symbol}"
+        val serving = Serving.name(product)
         return JSONObject().put("gymmane", "gymmane-food").put("v", 1).put("food", JSONObject()
             .put("name", foodName(product)).put("serving_name", serving).put("grams", amount)
             .put("liquid", product.unit == QuantityUnit.ML).put("per100", per100)).toString()

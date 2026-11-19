@@ -23,7 +23,7 @@ class GymManeImportTest {
             assertEquals(1, root.getInt("v"))
             val f = root.getJSONObject("food")
             assertEquals("Haferdrink · Testmarke", f.getString("name"))
-            assertEquals("100 g", f.getString("serving_name"))
+            assertEquals("1 Portion", f.getString("serving_name"))
             assertEquals(100.0, f.getDouble("grams"), 0.0)
             assertFalse(f.getBoolean("liquid"))
             assertTrue(f.getJSONObject("per100").get("kcal") is Number)
@@ -43,7 +43,7 @@ class GymManeImportTest {
 
     @Test fun `serving label without a known mass falls back exactly as specified`() {
         val f = food(product.copy(servingLabel = "1 Stück", servingAmount = null, unit = QuantityUnit.ML))
-        assertEquals("100 g", f.getString("serving_name"))
+        assertEquals("1 Portion", f.getString("serving_name"))
         assertEquals(100.0, f.getDouble("grams"), 0.0)
         assertTrue(f.getBoolean("liquid"))
     }

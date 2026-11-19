@@ -22,6 +22,8 @@ class ApiTests {
         assertTrue(request.path!!.startsWith("/api/v2/product/4006381333931.json?"))
         assertTrue(request.getHeader("User-Agent")!!.startsWith("GymManeScanner/"))
         assertEquals("de", request.requestUrl!!.queryParameter("lc"))
+        val fields = request.requestUrl!!.queryParameter("fields")!!.split(',')
+        assertTrue(fields.containsAll(listOf("serving_size", "serving_quantity", "quantity", "product_quantity", "packagings")))
     }
 
     @Test fun `HTTP 404 becomes product not found`() = runTest {

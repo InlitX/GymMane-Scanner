@@ -38,6 +38,9 @@ service_account*.json
 .agents/
 .codex/
 
+# Local documentation is not synchronized
+/docs/
+
 # Release archives and R8 mappings stay local; APKs belong in GitHub Releases
 /artifacts/
 *.apk

@@ -26,6 +26,13 @@
     <string name="text_close_details">Close details</string>
     <string name="text_serving_product_details">Serving &amp; product details</string>
     <string name="text_serving">Serving</string>
+    <string name="text_one_serving">1 serving</string>
+    <string name="text_one_can">1 can</string>
+    <string name="text_one_bottle">1 bottle</string>
+    <string name="text_one_pot">1 pot</string>
+    <string name="text_one_glass">1 glass</string>
+    <string name="text_one_pack">1 pack</string>
+    <string name="text_reference_serving">Without a serving amount, a reference serving of 100 g or 100 ml is shared.</string>
     <string name="text_grams">Grams</string>
     <string name="text_milliliters">Milliliters</string>
     <string name="text_category">Category</string>
