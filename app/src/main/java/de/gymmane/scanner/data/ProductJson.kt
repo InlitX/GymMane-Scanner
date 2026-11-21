@@ -26,7 +26,7 @@ object ProductJson {
             json.number("cholesterol_$suffix"))
     }
 
-    fun fromApi(body: String, barcode: String): Product {
+    fun fromApi(body: String, barcode: String, language: String = "de"): Product {
         val root = try { JSONObject(body) } catch (_: Exception) { throw InvalidProductResponse() }
         if (!root.has("status")) throw InvalidProductResponse()
         if (root.optInt("status") == 0) throw ProductNotFound()
@@ -40,16 +40,20 @@ object ProductJson {
         } else base
         return Product(
             id = barcode, barcode = barcode,
-            name = p.text("product_name_de") ?: p.text("product_name") ?: "Produkt $barcode",
-            nameKnown = p.text("product_name_de") != null || p.text("product_name") != null,
+            name = p.text("product_name_$language") ?: p.text("product_name_de") ?: p.text("product_name") ?: "Produkt $barcode",
+            nameKnown = p.text("product_name_$language") != null || p.text("product_name_de") != null || p.text("product_name") != null,
             brand = p.text("brands"),
-            category = p.optJSONArray("categories_tags_de")?.let { tags ->
-                (0 until tags.length()).map { tags.optString(it) }.lastOrNull {
-                    it.isNotBlank() && !Regex("^[a-z]{2}:").containsMatchIn(it)
+            category = listOf(language, "de").distinct().firstNotNullOfOrNull { lang ->
+                p.optJSONArray("categories_tags_$lang")?.let { tags ->
+                    (0 until tags.length()).map { tags.optString(it) }.lastOrNull {
+                        it.isNotBlank() && !Regex("^[a-z]{2}:").containsMatchIn(it)
+                    }
                 }
-            } ?: p.optJSONArray("categories_hierarchy")?.let { tags ->
-                (0 until tags.length()).map { tags.optString(it) }.lastOrNull { it.startsWith("de:") }
-                    ?.removePrefix("de:")?.replace('-', ' ')?.replaceFirstChar { it.titlecase() }
+            } ?: listOf(language, "de").distinct().firstNotNullOfOrNull { lang ->
+                p.optJSONArray("categories_hierarchy")?.let { tags ->
+                    (0 until tags.length()).map { tags.optString(it) }.lastOrNull { it.startsWith("$lang:") }
+                        ?.removePrefix("$lang:")?.replace('-', ' ')?.replaceFirstChar { it.titlecase() }
+                }
             } ?: p.text("categories")?.split(',')?.lastOrNull()?.trim(),
             imageUrl = (p.text("image_front_url") ?: p.text("image_url"))?.takeIf { it.startsWith("https://") },
             servingLabel = serving.label, servingAmount = serving.amount,

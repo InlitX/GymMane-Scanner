@@ -25,11 +25,16 @@ internal suspend fun Call.awaitResponse(): Response = suspendCancellableCoroutin
 class OpenFoodFactsApi(
     private val client: OkHttpClient,
     private val baseUrl: HttpUrl = "https://world.openfoodfacts.org/".toHttpUrl(),
+    private val language: () -> String = { "de" },
 ) {
     suspend fun product(barcode: String): Product {
+        val lang = language().takeIf { it.matches(Regex("[a-z]{2}")) } ?: "de"
+        val localized = listOf(lang, "de").distinct()
         val url = baseUrl.newBuilder().addPathSegments("api/v2/product").addPathSegment("$barcode.json")
-            .addQueryParameter("lc", "de")
-            .addQueryParameter("fields", "code,product_name,product_name_de,brands,categories,categories_tags_de,categories_hierarchy,image_front_url,image_url,serving_size,serving_quantity,serving_quantity_unit,quantity,product_quantity,product_quantity_unit,packagings,nutrition_data_per,nutriments")
+            .addQueryParameter("lc", lang)
+            .addQueryParameter("fields", (listOf("code", "product_name") + localized.map { "product_name_$it" } + listOf("brands", "categories") +
+                localized.map { "categories_tags_$it" } + listOf("categories_hierarchy", "image_front_url", "image_url", "serving_size", "serving_quantity",
+                "serving_quantity_unit", "quantity", "product_quantity", "product_quantity_unit", "packagings", "nutrition_data_per", "nutriments")).joinToString(","))
             .build()
         val request = Request.Builder().url(url)
             .header("User-Agent", "GymManeScanner/1.0.0 (Android; independent companion app)")
@@ -42,7 +47,7 @@ class OpenFoodFactsApi(
             }
             val body = response.body ?: throw InvalidProductResponse()
             if (body.contentLength() > 2_000_000) throw InvalidProductResponse()
-            ProductJson.fromApi(body.string(), barcode)
+            ProductJson.fromApi(body.string(), barcode, lang)
         }
     }
 }
