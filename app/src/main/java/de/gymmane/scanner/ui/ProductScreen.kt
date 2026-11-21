@@ -1,5 +1,7 @@
 package de.gymmane.scanner.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.style.TextAlign
 import de.gymmane.scanner.i18n.T
 
 import androidx.compose.animation.AnimatedVisibility
@@ -76,16 +78,20 @@ fun ProductScreen(product: Product, cached: Boolean, loading: Boolean, error: St
     val errorVisibility = rememberMotionVisibility(error != null)
     val n = if (portion && !canPortion) Nutrients() else product.nutrients(portion, amount)
     Column(Modifier.fillMaxSize().imePadding()) {
-        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    ProductImage(product, Modifier.size(72.dp))
-                    Column(Modifier.weight(1f)) {
-                        product.brand?.let { Text(it, color = Muted, style = MaterialTheme.typography.bodySmall) }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ProductImage(product, Modifier.size(84.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        product.brand?.let { SectionLabel(it) }
                         Text(product.name, style = MaterialTheme.typography.headlineSmall)
-                        if (cached) Text(T.text("Offline gespeichert"), color = Sage, style = MaterialTheme.typography.bodySmall)
+                        if (cached) Text(T.text("Offline gespeichert"), color = Sage, style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(top = 4.dp).background(Sage.copy(alpha = .14f), RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 4.dp))
                     }
-                    IconButton(onClick = { onCopy(T.text("Name"), product.name) }) { Icon(Icons.Outlined.ContentCopy, T.text("Name kopieren"), tint = Muted, modifier = Modifier.size(18.dp)) }
+                    FilledIconButton(onClick = { onCopy(T.text("Name"), product.name) }, modifier = Modifier.size(40.dp),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = Surface, contentColor = Muted)) {
+                        Icon(Icons.Outlined.ContentCopy, T.text("Name kopieren"), modifier = Modifier.size(17.dp))
+                    }
                 }
             }
             if (errorVisibility.currentState || errorVisibility.targetState) item { MotionError(error, errorVisibility) }
@@ -103,7 +109,7 @@ fun ProductScreen(product: Product, cached: Boolean, loading: Boolean, error: St
                     }
                 }
             }
-            item { TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) T.text("Weniger Nährwerte") else T.text("Weitere Nährwerte")) } }
+            item { ExpandRow(if (expanded) T.text("Weniger Nährwerte") else T.text("Weitere Nährwerte"), expanded, { expanded = !expanded }) }
             item {
                 AnimatedVisibility(expanded, enter = Motion.enter(), exit = Motion.exit()) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -113,20 +119,17 @@ fun ProductScreen(product: Product, cached: Boolean, loading: Boolean, error: St
                 }
             }
             }
-            item { TextButton(onClick = { details = !details }) { Text(if (details) T.text("Details schließen") else T.text("Portion & Produktdetails")) } }
+            item { ExpandRow(if (details) T.text("Details schließen") else T.text("Portion & Produktdetails"), details, { details = !details }) }
             item {
                 AnimatedVisibility(details, enter = Motion.enter(), exit = Motion.exit()) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(servingText, { servingText = it.take(100) },
-                        label = { Text(T.text("Bezeichnung, z. B. 1 Messlöffel")) },
-                        singleLine = true, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(amountText, {
+                    AppTextField(servingText, { servingText = it.take(100) }, T.text("Bezeichnung, z. B. 1 Messlöffel"))
+                    AppTextField(amountText, {
                         amountText = it.take(12)
                         if (parseNumber(amountText) != product.servingAmount && servingText == originalServing) {
                             servingText = T.text(Serving.DEFAULT_NAME)
                         }
-                    }, label = { Text(T.format("Portionsgröße in %1\$s", product.unit.symbol)) },
-                        singleLine = true, isError = invalid, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
+                    }, T.format("Portionsgröße in %1\$s", product.unit.symbol), numeric = true, unit = product.unit.symbol, isError = invalid)
                     if (amount == null) Text(T.text("Ohne Portionsmenge wird eine Bezugsportion von 100 g bzw. 100 ml geteilt."),
                         color = Muted, style = MaterialTheme.typography.bodySmall)
                     CopyField(T.text("Portion"), if (amount == null) T.text(Serving.DEFAULT_NAME)
@@ -134,12 +137,17 @@ fun ProductScreen(product: Product, cached: Boolean, loading: Boolean, error: St
                     CopyField(if (product.unit == QuantityUnit.G) T.text("Gramm") else T.text("Milliliter"), amount?.let(T::number), onCopy, Modifier.fillMaxWidth())
                     CopyField(T.text("Kategorie"), product.category, onCopy, Modifier.fillMaxWidth())
                     CopyField("Barcode", product.barcode, onCopy, Modifier.fillMaxWidth())
-                    if (product.manual) TextButton(onClick = onEdit) { Text(T.text("Eintrag bearbeiten")) }
-                    else TextButton(onClick = onRefresh, enabled = !loading) { Text(if (loading) T.text("Wird aktualisiert …") else T.text("Daten aktualisieren")) }
+                    if (product.manual) TextButton(onClick = onEdit, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(T.text("Eintrag bearbeiten"), style = MaterialTheme.typography.labelLarge)
+                    }
+                    else TextButton(onClick = onRefresh, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Outlined.Refresh, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(if (loading) T.text("Wird aktualisiert …") else T.text("Daten aktualisieren"), style = MaterialTheme.typography.labelLarge)
+                    }
                 }
             }
             }
-            item { Text(if (product.manual) T.text("Manueller Eintrag") else "Open Food Facts · ODbL", color = Muted, style = MaterialTheme.typography.bodySmall) }
+            item { Text(if (product.manual) T.text("Manueller Eintrag") else "Open Food Facts · ODbL", color = Muted, style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) }
         }
         if (onSend != null) Surface(color = Background) {
             PrimaryButton(T.text("An GymMane senden"), {

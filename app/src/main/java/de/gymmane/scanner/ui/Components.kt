@@ -23,6 +23,10 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.style.TextAlign
 import de.gymmane.scanner.ui.theme.*
@@ -34,22 +38,51 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier, color: Color = Mut
 
 @Composable
 fun CopyField(label: String, value: String?, onCopy: (String, String) -> Unit, modifier: Modifier = Modifier, color: Color = Ink, unit: String? = null, large: Boolean = false) {
-    Surface(modifier = modifier, color = Field, shape = RoundedCornerShape(23.dp)) {
-        Column(Modifier.padding(start = 17.dp, end = 8.dp, top = 14.dp, bottom = 10.dp)) {
-            SectionLabel(label, color = color)
+    Surface(modifier = modifier, color = Field, shape = RoundedCornerShape(22.dp)) {
+        Column(Modifier.padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f).padding(vertical = 6.dp)) {
-                    Crossfade(targetState = value, animationSpec = Motion.spec(), label = "nutritionValue") { displayed ->
-                        Text(displayed ?: "—", style = if (large) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium,
-                            color = if (displayed == null) Muted else Ink)
-                    }
-                    if (value == null) Text(T.text("Nicht angegeben"), color = Muted, fontSize = 11.sp)
-                    else if (unit != null) Text(unit, color = Muted, style = MaterialTheme.typography.bodySmall)
-                }
-                IconButton(onClick = { value?.let { onCopy(label, it) } }, enabled = value != null) {
-                    Icon(Icons.Outlined.ContentCopy, T.format("%1\$s kopieren", label), Modifier.size(18.dp), tint = if (value != null) color else Muted.copy(alpha = .3f))
+                SectionLabel(label, Modifier.weight(1f), color = color)
+                IconButton(onClick = { value?.let { onCopy(label, it) } }, enabled = value != null, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Outlined.ContentCopy, T.format("%1\$s kopieren", label), Modifier.size(16.dp), tint = if (value != null) Muted else Muted.copy(alpha = .3f))
                 }
             }
+            Crossfade(targetState = value, animationSpec = Motion.spec(), label = "nutritionValue") { displayed ->
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(displayed ?: "—", style = if (large) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleLarge,
+                        color = if (displayed == null) Muted else Ink, maxLines = 1)
+                    if (displayed != null && unit != null) {
+                        Spacer(Modifier.width(4.dp))
+                        Text(unit, color = Muted, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = if (large) 5.dp else 3.dp))
+                    }
+                }
+            }
+            if (value == null) Text(T.text("Nicht angegeben"), color = Muted, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+fun AppTextField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier, numeric: Boolean = false,
+    unit: String? = null, accent: Color = Muted, enabled: Boolean = true, isError: Boolean = false) {
+    TextField(value, onValueChange, modifier.fillMaxWidth(), enabled = enabled, singleLine = true, isError = isError,
+        textStyle = MaterialTheme.typography.bodyLarge,
+        label = { Text(label, color = if (isError) MaterialTheme.colorScheme.error else accent) },
+        suffix = unit?.let { { Text(it, color = Muted, style = MaterialTheme.typography.bodyMedium) } },
+        keyboardOptions = KeyboardOptions(keyboardType = if (numeric) KeyboardType.Decimal else KeyboardType.Text),
+        shape = RoundedCornerShape(18.dp),
+        colors = TextFieldDefaults.colors(focusedContainerColor = Field, unfocusedContainerColor = Field, disabledContainerColor = Field, errorContainerColor = Field,
+            focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, disabledIndicatorColor = Color.Transparent, errorIndicatorColor = Color.Transparent,
+            cursorColor = Apricot))
+}
+
+@Composable
+fun ExpandRow(text: String, expanded: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val turn by animateFloatAsState(if (expanded) 180f else 0f, Motion.spec(Motion.Layout), label = "expandArrow")
+    val interactions = remember { MutableInteractionSource() }
+    Surface(onClick = onClick, modifier = modifier.fillMaxWidth().motionPress(interactions), color = Surface, shape = RoundedCornerShape(50), interactionSource = interactions) {
+        Row(Modifier.heightIn(min = 52.dp).padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(text, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+            Icon(Icons.Outlined.KeyboardArrowDown, null, tint = Muted, modifier = Modifier.size(20.dp).rotate(turn))
         }
     }
 }

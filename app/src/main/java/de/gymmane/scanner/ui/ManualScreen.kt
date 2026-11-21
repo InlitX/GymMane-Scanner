@@ -38,7 +38,7 @@ fun ManualScreen(editing: Product?, initialBarcode: String, loading: Boolean, er
     var sodium by rememberSaveable(key) { mutableStateOf(original.sodium?.let(::editableNumber).orEmpty()) }
     var formError by rememberSaveable(key) { mutableStateOf<String?>(null) }
     val errorVisibility = rememberMotionVisibility(formError != null || error != null)
-    LazyColumn(Modifier.fillMaxSize().imePadding(), contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyColumn(Modifier.fillMaxSize().imePadding(), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item(key = "editor_1") { EditorField(T.text("Name *"), name, { name = it.take(200) }, modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
         item(key = "editor_2") {
             SectionLabel(T.text("Angaben vom Etikett"), color = Apricot)
@@ -46,14 +46,18 @@ fun ManualScreen(editing: Product?, initialBarcode: String, loading: Boolean, er
             PillSwitch(listOf(T.text("je 100 g"), T.text("je 100 ml")), if (ml) 1 else 0, { ml = it == 1 }, Modifier.fillMaxWidth())
         }
         item(key = "editor_3") {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                EditorField(T.text("Kalorien *"), kcal, { kcal = it.take(12) }, true, "kcal")
-                EditorField(T.text("Eiweiß *"), protein, { protein = it.take(12) }, true, "g", Apricot)
-                EditorField(T.text("Kohlenhydrate *"), carbs, { carbs = it.take(12) }, true, "g", Gold)
-                EditorField(T.text("Fett *"), fat, { fat = it.take(12) }, true, "g", Sage)
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    EditorField(T.text("Kalorien *"), kcal, { kcal = it.take(12) }, true, "kcal", modifier = Modifier.weight(1f))
+                    EditorField(T.text("Eiweiß *"), protein, { protein = it.take(12) }, true, "g", Apricot, modifier = Modifier.weight(1f))
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    EditorField(T.text("Kohlenhydrate *"), carbs, { carbs = it.take(12) }, true, "g", Gold, modifier = Modifier.weight(1f))
+                    EditorField(T.text("Fett *"), fat, { fat = it.take(12) }, true, "g", Sage, modifier = Modifier.weight(1f))
+                }
             }
         }
-        item(key = "editor_4") { TextButton(onClick = { showDetails = !showDetails }) { Text(if (showDetails) T.text("Weniger Angaben") else T.text("Optionale Angaben")) } }
+        item(key = "editor_4") { ExpandRow(if (showDetails) T.text("Weniger Angaben") else T.text("Optionale Angaben"), showDetails, { showDetails = !showDetails }) }
         if (showDetails) {
         item(key = "editor_5") { EditorField(T.text("Kategorie (optional)"), category, { category = it.take(100) }, modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
         item(key = "editor_6") { EditorField(T.text("Barcode (optional)"), barcode, { barcode = it.filter(Char::isDigit).take(13) }, numeric = true, enabled = editing == null, modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true))) }
@@ -93,16 +97,13 @@ fun ManualScreen(editing: Product?, initialBarcode: String, loading: Boolean, er
                 }
             }, Modifier.fillMaxWidth().animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true)), enabled = !loading, icon = Icons.Outlined.Check)
         }
-        item(key = "editor_17") { TextButton(onClick = onCancel, modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true)), enabled = !loading) { Text(T.text("Abbrechen")) } }
+        item(key = "editor_17") { TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true)), enabled = !loading) { Text(T.text("Abbrechen"), color = Muted, style = MaterialTheme.typography.labelLarge) } }
     }
 }
 
 @Composable
 private fun EditorField(label: String, value: String, onValueChange: (String) -> Unit, numeric: Boolean = false, unit: String? = null, accent: androidx.compose.ui.graphics.Color = Muted, enabled: Boolean = true, modifier: Modifier = Modifier) {
-    OutlinedTextField(value, onValueChange, label = { Text(label, color = accent) }, singleLine = true, enabled = enabled,
-        suffix = unit?.let { { Text(it, color = Muted) } }, modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
-        keyboardOptions = KeyboardOptions(keyboardType = if (numeric) KeyboardType.Decimal else KeyboardType.Text),
-        colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Field, focusedContainerColor = Field, unfocusedBorderColor = Outline))
+    AppTextField(value, onValueChange, label, modifier, numeric, unit, accent, enabled)
 }
 
 private fun editableNumber(value: Double): String = if (value.isFinite() && value >= 0)
