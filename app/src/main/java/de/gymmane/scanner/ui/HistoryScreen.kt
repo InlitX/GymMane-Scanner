@@ -17,6 +17,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import de.gymmane.scanner.domain.Product
 import de.gymmane.scanner.domain.formatNumber
 import de.gymmane.scanner.ui.theme.*
@@ -27,15 +34,19 @@ fun HistoryScreen(state: UiState, onOpen: (Product) -> Unit, onDelete: (Product)
     var deleting by remember { mutableStateOf<Product?>(null) }
     val errorVisibility = rememberMotionVisibility(state.error != null)
     val filtered = state.history.filter { query.isBlank() || "${it.name} ${it.brand.orEmpty()} ${it.barcode.orEmpty()} ${it.category.orEmpty()}".contains(query, ignoreCase = true) }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
-            Text(T.format("%1\$s gespeicherte Lebensmittel", state.history.size), color = Muted, style = MaterialTheme.typography.bodyMedium)
+            TextField(query, { query = it.take(100) }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp), singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge,
+                placeholder = { Text(T.text("Name oder Barcode suchen"), style = MaterialTheme.typography.bodyLarge, color = Muted) },
+                leadingIcon = { Icon(Icons.Outlined.Search, null, tint = Muted, modifier = Modifier.size(20.dp)) },
+                trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, T.text("Suche leeren"), tint = Muted, modifier = Modifier.size(18.dp)) } },
+                shape = RoundedCornerShape(50),
+                colors = TextFieldDefaults.colors(unfocusedContainerColor = Surface, focusedContainerColor = Surface,
+                    unfocusedIndicatorColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, cursorColor = Apricot))
         }
-        item {
-            OutlinedTextField(query, { query = it.take(100) }, modifier = Modifier.fillMaxWidth(), singleLine = true,
-                placeholder = { Text(T.text("Name oder Barcode suchen")) }, leadingIcon = { Icon(Icons.Outlined.Search, null) },
-                trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, T.text("Suche leeren")) } },
-                shape = RoundedCornerShape(50), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Surface, focusedContainerColor = Surface, unfocusedBorderColor = Outline))
+        if (state.history.isNotEmpty()) item {
+            SectionLabel(T.format("%1\$s gespeicherte Lebensmittel", state.history.size), Modifier.padding(start = 6.dp, top = 10.dp, bottom = 2.dp))
         }
         if (errorVisibility.currentState || errorVisibility.targetState) item { MotionError(state.error, errorVisibility) }
         if (filtered.isEmpty()) item(key = "history_empty") {
@@ -45,19 +56,29 @@ fun HistoryScreen(state: UiState, onOpen: (Product) -> Unit, onDelete: (Product)
         }
         items(filtered, key = { it.id }) { product ->
             val interaction = remember(product.id) { MutableInteractionSource() }
-            Surface(modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true)).motionPress(interaction), interactionSource = interaction, onClick = { onOpen(product) }, color = Surface, shape = RoundedCornerShape(25.dp)) {
-                Row(Modifier.fillMaxWidth().padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    ProductImage(product, Modifier.size(68.dp))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(product.name, style = MaterialTheme.typography.titleMedium)
-                        Text(product.brand ?: product.category ?: if (product.manual) T.text("Manuell eingetragen") else "Open Food Facts", style = MaterialTheme.typography.bodySmall, color = Muted, maxLines = 1)
-                        Text("${product.per100.kcal?.let { "${T.number(it)} kcal" } ?: T.text("Kalorien nicht angegeben")} · 100 ${product.unit.symbol}", style = MaterialTheme.typography.bodySmall, color = Apricot)
+            Surface(modifier = Modifier.animateItem(fadeInSpec = Motion.spec(), placementSpec = Motion.spec(Motion.Layout), fadeOutSpec = Motion.spec(Motion.Exit, true)).motionPress(interaction), interactionSource = interaction, onClick = { onOpen(product) }, color = Surface, shape = RoundedCornerShape(24.dp)) {
+                Row(Modifier.fillMaxWidth().padding(start = 10.dp, top = 10.dp, bottom = 10.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ProductImage(product, Modifier.size(64.dp))
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(product.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(product.brand ?: product.category ?: if (product.manual) T.text("Manuell eingetragen") else "Open Food Facts", style = MaterialTheme.typography.bodySmall, color = Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        val kcal = product.per100.kcal
+                        Text(buildAnnotatedString {
+                            if (kcal != null) {
+                                withStyle(SpanStyle(color = Ink, fontWeight = FontWeight.ExtraBold)) { append(T.number(kcal)) }
+                                append(" kcal · 100 ${product.unit.symbol}")
+                            } else append(T.text("Kalorien nicht angegeben"))
+                        }, style = MaterialTheme.typography.bodySmall, color = Apricot, modifier = Modifier.padding(top = 2.dp))
                     }
                     IconButton(onClick = { deleting = product }) { Icon(Icons.Outlined.DeleteOutline, T.format("%1\$s aus Verlauf löschen", product.name), tint = Muted, modifier = Modifier.size(20.dp)) }
                 }
             }
         }
-        if (state.history.isNotEmpty()) item { Text("Die letzten 100 gescannten Produkte und alle manuellen Einträge werden lokal gespeichert. Tippe auf ein Produkt, um seine Werte zu kopieren.", color = Muted, style = MaterialTheme.typography.bodySmall) }
+        if (state.history.isNotEmpty()) item {
+            Text(T.text("Die letzten 100 gescannten Produkte und alle manuellen Einträge werden lokal gespeichert. Tippe auf ein Produkt, um seine Werte zu kopieren."),
+                color = Muted, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp))
+        }
     }
     MotionDialog(deleting) { product, motion ->
         AlertDialog(modifier = motion,onDismissRequest = { deleting = null }, title = { Text(T.text("Eintrag löschen?")) },

@@ -27,6 +27,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -93,35 +98,50 @@ fun ScannerApp(viewModel: ScannerViewModel, updates: UpdateViewModel) {
         containerColor = Background,
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
-            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (state.screen == Screen.PRODUCT || state.screen == Screen.MANUAL || state.screen == Screen.SETTINGS) {
-                    FilledIconButton(onClick = { viewModel.navigate(if (state.screen == Screen.SETTINGS) previousScreen else Screen.SCAN) }, colors = IconButtonDefaults.filledIconButtonColors(containerColor = Surface)) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, T.text("Zurück zum Scanner"), Modifier.size(20.dp))
+            val inner = state.screen == Screen.PRODUCT || state.screen == Screen.MANUAL || state.screen == Screen.SETTINGS
+            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (inner) {
+                    RoundIconButton(Icons.AutoMirrored.Outlined.ArrowBack, T.text("Zurück zum Scanner")) {
+                        viewModel.navigate(if (state.screen == Screen.SETTINGS) previousScreen else Screen.SCAN)
                     }
                 } else {
                     Box(Modifier.size(44.dp).background(Surface, CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Outlined.CenterFocusStrong, null, tint = Apricot, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Outlined.QrCodeScanner, null, tint = Apricot, modifier = Modifier.size(22.dp))
                     }
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(T.text(when (state.screen) { Screen.SETTINGS -> T.text("Einstellungen"); Screen.PRODUCT -> T.text("Lebensmittel"); Screen.HISTORY -> T.text("Deine Lebensmittel"); Screen.MANUAL -> if (state.editing == null) T.text("Neues Lebensmittel") else T.text("Lebensmittel bearbeiten"); else -> "GymMane" }), style = MaterialTheme.typography.titleLarge)
-                    
+                    if (!inner) Text("GymMane Scanner".uppercase(java.util.Locale.ROOT), color = Muted, style = MaterialTheme.typography.labelSmall)
+                    Text(T.text(when (state.screen) { Screen.SETTINGS -> T.text("Einstellungen"); Screen.PRODUCT -> T.text("Lebensmittel"); Screen.HISTORY -> T.text("Deine Lebensmittel"); Screen.MANUAL -> if (state.editing == null) T.text("Neues Lebensmittel") else T.text("Lebensmittel bearbeiten"); else -> T.text("Barcode scannen") }),
+                        style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                if (state.screen != Screen.SETTINGS) IconButton(onClick = { previousScreen = state.screen; viewModel.navigate(Screen.SETTINGS) }) { Icon(Icons.Outlined.Settings, T.text("Einstellungen"), tint = Muted, modifier = Modifier.size(22.dp)) }
+                if (state.screen != Screen.SETTINGS) {
+                    Spacer(Modifier.width(12.dp))
+                    RoundIconButton(Icons.Outlined.Settings, T.text("Einstellungen")) { previousScreen = state.screen; viewModel.navigate(Screen.SETTINGS) }
+                }
             }
         },
         bottomBar = {
             if (state.screen == Screen.SCAN || state.screen == Screen.HISTORY) {
-                Row(Modifier.navigationBarsPadding().fillMaxWidth().padding(horizontal = 36.dp, vertical = 12.dp)
-                    .background(Surface, RoundedCornerShape(40.dp)).padding(6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(Screen.SCAN to T.text("Scannen"), Screen.HISTORY to T.text("Verlauf")).forEach { (screen, label) ->
-                        val selected = state.screen == screen
-                        val tabColor by animateColorAsState(if (selected) Ink else Muted, Motion.spec(), label = "tab")
-                        FilledTonalButton(onClick = { viewModel.navigate(screen) }, modifier = Modifier.weight(1f).height(49.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = Surface, contentColor = tabColor)) {
-                            Icon(if (screen == Screen.SCAN) Icons.Outlined.QrCodeScanner else Icons.Outlined.History, null, Modifier.size(19.dp))
-                            Spacer(Modifier.width(8.dp)); Text(T.text(label))
+                val tabs = listOf(Screen.SCAN to T.text("Scannen"), Screen.HISTORY to T.text("Verlauf"))
+                BoxWithConstraints(Modifier.navigationBarsPadding().fillMaxWidth().padding(horizontal = 36.dp, vertical = 12.dp)
+                    .background(Surface, RoundedCornerShape(40.dp)).padding(6.dp)) {
+                    val gap = 8.dp
+                    val tabWidth = (maxWidth - gap) / 2
+                    val selectedIndex = tabs.indexOfFirst { it.first == state.screen }.coerceAtLeast(0)
+                    val indicator by animateDpAsState((tabWidth + gap) * selectedIndex, Motion.spec(Motion.Layout), label = "tabIndicator")
+                    Box(Modifier.offset(x = indicator).width(tabWidth).height(49.dp).background(Field, RoundedCornerShape(40.dp)))
+                    Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                        tabs.forEach { (screen, label) ->
+                            val selected = state.screen == screen
+                            val tabColor by animateColorAsState(if (selected) Ink else Muted, Motion.spec(), label = "tab")
+                            val iconColor by animateColorAsState(if (selected) Apricot else Muted, Motion.spec(), label = "tabIcon")
+                            FilledTonalButton(onClick = { viewModel.navigate(screen) }, modifier = Modifier.weight(1f).height(49.dp)
+                                .semantics { this.selected = selected },
+                                colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color.Transparent, contentColor = tabColor)) {
+                                Icon(if (screen == Screen.SCAN) Icons.Outlined.QrCodeScanner else Icons.Outlined.History, null, Modifier.size(19.dp), tint = iconColor)
+                                Spacer(Modifier.width(8.dp)); Text(T.text(label), style = MaterialTheme.typography.labelLarge, fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Bold)
+                            }
                         }
                     }
                 }
@@ -158,5 +178,13 @@ fun ScannerApp(viewModel: ScannerViewModel, updates: UpdateViewModel) {
         text = { Text(T.text(correction.second.orEmpty())) },
         confirmButton = { TextButton(onClick = viewModel::editForSending) { Text(T.text("Werte bearbeiten")) } },
         dismissButton = { TextButton(onClick = viewModel::dismissCorrection) { Text(T.text("Abbrechen")) } })
+    }
+}
+
+@Composable
+private fun RoundIconButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
+    val interactions = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    Surface(onClick = onClick, modifier = Modifier.size(44.dp).motionPress(interactions), shape = CircleShape, color = Surface, contentColor = Ink, interactionSource = interactions) {
+        Box(contentAlignment = Alignment.Center) { Icon(icon, description, Modifier.size(20.dp)) }
     }
 }

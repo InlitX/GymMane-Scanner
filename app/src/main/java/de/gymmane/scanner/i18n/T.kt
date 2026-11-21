@@ -163,7 +163,8 @@ object T {
         "Barcodes werden bei Open Food Facts gesucht. Verlauf und manuelle Eintr\u00e4ge bleiben auf deinem Ger\u00e4t. Kamerabilder werden nicht hochgeladen." to R.string.text_barcodes_are_looked_up_on_open_food_facts_history_and_manual_entr,
         "Produktdaten: Open Food Facts \u00b7 ODbL. Bilder: CC BY-SA." to R.string.text_product_data_open_food_facts_odbl_images_cc_by_sa,
         "Das Lebensmittel konnte nicht geteilt werden. Bitte erneut versuchen." to R.string.text_could_not_share_this_food_please_try_again,
-        "Mit GymMane teilen" to R.string.text_share_with_gymmane_t137
+        "Mit GymMane teilen" to R.string.text_share_with_gymmane_t137,
+        "Die letzten 100 gescannten Produkte und alle manuellen Einträge werden lokal gespeichert. Tippe auf ein Produkt, um seine Werte zu kopieren." to R.string.text_history_note
     )
     fun format(key: String, vararg args: Any): String {
         val resource = ids[key]

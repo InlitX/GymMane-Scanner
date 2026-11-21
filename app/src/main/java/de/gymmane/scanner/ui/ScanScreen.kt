@@ -13,6 +13,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import de.gymmane.scanner.ui.theme.*
@@ -21,16 +25,14 @@ import de.gymmane.scanner.ui.theme.*
 fun ScanScreen(state: UiState, onScan: (String) -> Unit, onManual: () -> Unit, onRetry: () -> Unit, onDismiss: () -> Unit, active: Boolean = true) {
     var entering by rememberSaveable { mutableStateOf(false) }
     var barcode by rememberSaveable { mutableStateOf("") }
-    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(T.text("Barcode scannen"), style = MaterialTheme.typography.headlineSmall)
-        Text(T.text("Barcode in den Rahmen halten"), color = Muted, style = MaterialTheme.typography.bodyMedium)
+    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp).padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             CameraScanner(enabled = active && state.screen == Screen.SCAN && !state.loading && state.error == null && !entering,
                 onBarcode = onScan, modifier = Modifier.fillMaxSize())
-            androidx.compose.animation.AnimatedVisibility(state.loading, modifier = Modifier.matchParentSize(), enter = fadeIn(Motion.spec()), exit = fadeOut(Motion.spec(Motion.Exit, true))) { Surface(Modifier.fillMaxSize(), color = Background.copy(alpha = .85f)) {
+            androidx.compose.animation.AnimatedVisibility(state.loading, modifier = Modifier.matchParentSize(), enter = fadeIn(Motion.spec()), exit = fadeOut(Motion.spec(Motion.Exit, true))) { Surface(Modifier.fillMaxSize(), color = Background.copy(alpha = .85f), shape = RoundedCornerShape(28.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.height(12.dp)); Text(T.text("Produkt wird gesucht …"))
+                    CircularProgressIndicator(Modifier.size(30.dp), strokeWidth = 2.5.dp, color = Apricot)
+                    Spacer(Modifier.height(14.dp)); Text(T.text("Produkt wird gesucht …"), style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
@@ -39,9 +41,9 @@ fun ScanScreen(state: UiState, onScan: (String) -> Unit, onManual: () -> Unit, o
             if (state.lastBarcode.isNotEmpty()) TextButton(onClick = onRetry) { Text(T.text("Erneut suchen")) }
             TextButton(onClick = onDismiss) { Text(T.text("Weiter scannen")) }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = { entering = true }, enabled = !state.loading) { Text(T.text("Barcode eintippen")) }
-            TextButton(onClick = onManual, enabled = !state.loading) { Text(T.text("Manuell eintragen")) }
+        Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            ScanAction(T.text("Barcode eintippen"), Icons.Outlined.Keyboard, !state.loading, Modifier.weight(1f)) { entering = true }
+            ScanAction(T.text("Manuell eintragen"), Icons.Outlined.EditNote, !state.loading, Modifier.weight(1f), onManual)
         }
     }
     MotionDialog(if (entering) Unit else null) { _, motion -> AlertDialog(modifier = motion,onDismissRequest = { entering = false }, title = { Text(T.text("Barcode eintippen")) }, text = {
@@ -52,5 +54,17 @@ fun ScanScreen(state: UiState, onScan: (String) -> Unit, onManual: () -> Unit, o
         }
     }, confirmButton = { TextButton(onClick = { entering = false; onScan(barcode) }, enabled = barcode.length in listOf(8, 12, 13)) { Text(T.text("Produkt suchen")) } },
         dismissButton = { TextButton(onClick = { entering = false }) { Text(T.text("Abbrechen")) } })
+    }
+}
+
+@Composable
+private fun ScanAction(label: String, icon: ImageVector, enabled: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    val interactions = remember { MutableInteractionSource() }
+    FilledTonalButton(onClick, modifier.height(52.dp).motionPress(interactions, enabled), enabled = enabled, interactionSource = interactions,
+        shape = RoundedCornerShape(50), contentPadding = PaddingValues(horizontal = 12.dp),
+        colors = ButtonDefaults.filledTonalButtonColors(containerColor = Surface, contentColor = Ink)) {
+        Icon(icon, null, Modifier.size(18.dp), tint = Apricot)
+        Spacer(Modifier.width(8.dp))
+        Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelLarge)
     }
 }

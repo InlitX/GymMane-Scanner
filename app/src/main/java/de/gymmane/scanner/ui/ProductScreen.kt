@@ -53,9 +53,12 @@ fun ProductImage(product: Product, modifier: Modifier = Modifier) {
 
 @Composable
 private fun MissingImage() {
-    Column(Modifier.fillMaxSize().padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Icon(Icons.Outlined.Restaurant, null, tint = Apricot, modifier = Modifier.size(30.dp))
-        Text(T.text("Kein Bild"), color = Muted, style = MaterialTheme.typography.labelSmall)
+    BoxWithConstraints(Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.Center) {
+        val roomy = maxHeight >= 96.dp
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Icon(Icons.Outlined.Restaurant, if (roomy) null else T.text("Kein Bild"), tint = Apricot, modifier = Modifier.size(if (roomy) 30.dp else 24.dp))
+            if (roomy) Text(T.text("Kein Bild"), color = Muted, style = MaterialTheme.typography.labelSmall)
+        }
     }
 }
 
