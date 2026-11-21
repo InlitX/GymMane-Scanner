@@ -1,5 +1,8 @@
 package de.gymmane.scanner.updates
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.SystemUpdate
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
@@ -65,16 +68,16 @@ fun UpdateInstallEffects(viewModel: UpdateViewModel) {
 @Composable
 fun UpdateSettings(viewModel: UpdateViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HorizontalDivider(color = Outline)
-    SectionLabel(stringResource(R.string.update_section))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.update_auto), Modifier.weight(1f))
-        Switch(state.automatic, viewModel::automatic)
+    SettingsCard {
+        SettingsRow(Icons.Outlined.SystemUpdate, stringResource(R.string.update_auto), onClick = { viewModel.automatic(!state.automatic) }) {
+            Switch(state.automatic, viewModel::automatic)
+        }
+        SettingsDivider()
+        SettingsRow(Icons.Outlined.Refresh, stringResource(if (state.checking) R.string.update_checking else R.string.update_check),
+            state.status?.let { stringResource(it) }, onClick = if (!state.checking && !state.downloading) ({ viewModel.check(true) }) else null) {
+            if (state.checking) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = Apricot)
+        }
     }
-    TextButton(onClick = { viewModel.check(true) }, enabled = !state.checking && !state.downloading) {
-        Text(stringResource(if (state.checking) R.string.update_checking else R.string.update_check))
-    }
-    state.status?.let { Text(stringResource(it), color = Muted, style = MaterialTheme.typography.bodySmall) }
 }
 
 @Composable
