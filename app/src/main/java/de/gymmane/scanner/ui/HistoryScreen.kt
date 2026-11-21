@@ -81,9 +81,9 @@ fun HistoryScreen(state: UiState, onOpen: (Product) -> Unit, onDelete: (Product)
         }
     }
     MotionDialog(deleting) { product, motion ->
-        AlertDialog(modifier = motion,onDismissRequest = { deleting = null }, title = { Text(T.text("Eintrag löschen?")) },
+        AlertDialog(modifier = motion, containerColor = Surface, textContentColor = Muted, onDismissRequest = { deleting = null }, title = { Text(T.text("Eintrag löschen?")) },
             text = { Text(T.text(if (product.manual) "„${product.name}“ wird mit deinen manuell eingegebenen Werten von diesem Gerät entfernt." else "„${product.name}“ wird aus dem Offline-Verlauf entfernt. Du kannst es später erneut scannen.")) },
-            confirmButton = { TextButton(onClick = { onDelete(product); deleting = null }) { Text(T.text("Löschen")) } },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text(T.text("Behalten")) } })
+            confirmButton = { DialogConfirm(T.text("Löschen"), { onDelete(product); deleting = null }) },
+            dismissButton = { DialogDismiss(T.text("Behalten")) { deleting = null } })
     }
 }

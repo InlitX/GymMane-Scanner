@@ -46,14 +46,13 @@ fun ScanScreen(state: UiState, onScan: (String) -> Unit, onManual: () -> Unit, o
             ScanAction(T.text("Manuell eintragen"), Icons.Outlined.EditNote, !state.loading, Modifier.weight(1f), onManual)
         }
     }
-    MotionDialog(if (entering) Unit else null) { _, motion -> AlertDialog(modifier = motion,onDismissRequest = { entering = false }, title = { Text(T.text("Barcode eintippen")) }, text = {
+    MotionDialog(if (entering) Unit else null) { _, motion -> AlertDialog(modifier = motion, containerColor = Surface, onDismissRequest = { entering = false }, title = { Text(T.text("Barcode eintippen")) }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(T.text("Die 8, 12 oder 13 Ziffern unter dem Barcode eingeben."), color = Muted)
-            OutlinedTextField(value = barcode, onValueChange = { barcode = it.filter(Char::isDigit).take(13) },
-                label = { Text("EAN / UPC-A") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+            Text(T.text("Die 8, 12 oder 13 Ziffern unter dem Barcode eingeben."), color = Muted, style = MaterialTheme.typography.bodyMedium)
+            AppTextField(barcode, { barcode = it.filter(Char::isDigit).take(13) }, "EAN / UPC-A", numeric = true)
         }
-    }, confirmButton = { TextButton(onClick = { entering = false; onScan(barcode) }, enabled = barcode.length in listOf(8, 12, 13)) { Text(T.text("Produkt suchen")) } },
-        dismissButton = { TextButton(onClick = { entering = false }) { Text(T.text("Abbrechen")) } })
+    }, confirmButton = { DialogConfirm(T.text("Produkt suchen"), { entering = false; onScan(barcode) }, enabled = barcode.length in listOf(8, 12, 13)) },
+        dismissButton = { DialogDismiss(T.text("Abbrechen")) { entering = false } })
     }
 }
 
