@@ -106,4 +106,15 @@ class ProductTests {
         assertNotNull(ManualEntry.validate("A", "", "", listOf("900", "0", "0", "101", "", "", "")))
         assertNull(ManualEntry.validate("A", "", "30", listOf("100", "2,5", "5", "0", "", "", "0,012")))
     }
+    @Test fun `the product name and category follow the app language and fall back to German`() {
+        val body = response(""""product_name":"Generic","product_name_de":"Joghurt","product_name_en":"Yogurt","categories_tags_en":["en:dairies","Dairy"],"categories_tags_de":["Milchprodukte"]""")
+        val english = ProductJson.fromApi(body, "123", "en")
+        assertEquals("Yogurt", english.name)
+        assertEquals("Dairy", english.category)
+        val german = ProductJson.fromApi(body, "123")
+        assertEquals("Joghurt", german.name)
+        assertEquals("Milchprodukte", german.category)
+        val onlyGerman = ProductJson.fromApi(response(""""product_name_de":"Joghurt""""), "123", "en")
+        assertEquals("Joghurt", onlyGerman.name)
+    }
 }

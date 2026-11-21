@@ -20,7 +20,8 @@ class ProductRepository(context: Context) : ProductStore {
     private val client = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS).callTimeout(20, TimeUnit.SECONDS).build()
     private val imageClient = client.newBuilder().callTimeout(5, TimeUnit.SECONDS).build()
-    private val api = OpenFoodFactsApi(client)
+    private val settings = ScannerSettings(context.applicationContext)
+    private val api = OpenFoodFactsApi(client, language = { settings.language })
 
     override suspend fun history(): List<Product> = withContext(Dispatchers.IO) { mutex.withLock { cache.history() } }
 
