@@ -31,6 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -81,57 +85,76 @@ fun CameraScanner(enabled: Boolean, onBarcode: (String) -> Unit, modifier: Modif
     LaunchedEffect(camera, torch) { camera?.cameraControl?.enableTorch(torch) }
     LaunchedEffect(camera, zoom) { camera?.cameraControl?.setLinearZoom(zoom) }
 
-    Box(modifier.clip(RoundedCornerShape(30.dp)).background(Surface)) {
+    Box(modifier.clip(RoundedCornerShape(28.dp)).background(Surface)) {
         if (permission && cameraError == null) {
             key(retry) {
                 CameraPreview(enabled, { onBarcode(it) }, { camera = it }, { cameraError = it }, Modifier.matchParentSize())
             }
             Canvas(Modifier.matchParentSize()) {
-                val x = size.width * .10f
-                val y = size.height * .27f
+                val x = size.width * .12f
+                val y = size.height * .30f
                 val right = size.width - x
-                val bottom = size.height * .68f
-                val length = 25.dp.toPx()
-                val stroke = 3.dp.toPx()
-                drawRect(Color.Black.copy(alpha = .18f))
+                val bottom = size.height * .62f
+                val length = 28.dp.toPx()
+                val stroke = 3.5.dp.toPx()
+                drawRect(Color.Black.copy(alpha = .22f))
                 for ((corner, dx, dy) in listOf(
                     Triple(Offset(x, y), 1, 1), Triple(Offset(right, y), -1, 1),
                     Triple(Offset(x, bottom), 1, -1), Triple(Offset(right, bottom), -1, -1))) {
-                    drawLine(Apricot, corner, corner + Offset(length * dx, 0f), stroke)
-                    drawLine(Apricot, corner, corner + Offset(0f, length * dy), stroke)
+                    drawLine(Apricot, corner, corner + Offset(length * dx, 0f), stroke, cap = StrokeCap.Round)
+                    drawLine(Apricot, corner, corner + Offset(0f, length * dy), stroke, cap = StrokeCap.Round)
                 }
             }
-            Row(Modifier.align(Alignment.TopStart).padding(18.dp).background(Background.copy(alpha = .75f), RoundedCornerShape(50)).padding(horizontal = 12.dp, vertical = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.CenterFocusStrong, null, tint = Sage, modifier = Modifier.size(15.dp))
-                Spacer(Modifier.width(7.dp))
+            Row(Modifier.align(Alignment.TopStart).padding(14.dp).height(36.dp).background(Background.copy(alpha = .72f), RoundedCornerShape(50)).padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                val live by animateColorAsState(if (camera != null && enabled) Sage else Muted, Motion.spec(), label = "scannerDot")
+                Box(Modifier.size(7.dp).background(live, CircleShape))
+                Spacer(Modifier.width(8.dp))
                 Crossfade(if (camera == null) T.text("KAMERA WIRD GESTARTET") else if (enabled) T.text("BEREIT ZUM SCANNEN") else T.text("SCAN PAUSIERT"), animationSpec = Motion.spec(), label = "scannerStatus") {
-                    Text(it, style = MaterialTheme.typography.labelSmall)
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = Ink)
                 }
             }
             if (camera?.cameraInfo?.hasFlashUnit() == true) {
-                FilledIconToggleButton(checked = torch, onCheckedChange = { torch = it }, modifier = Modifier.align(Alignment.TopEnd).padding(12.dp), colors = IconButtonDefaults.filledIconToggleButtonColors(containerColor = Background.copy(alpha = .75f), checkedContainerColor = Apricot)) {
-                    Icon(if (torch) Icons.Outlined.FlashOn else Icons.Outlined.FlashOff, if (torch) T.text("Licht ausschalten") else T.text("Licht einschalten"))
+                FilledIconToggleButton(checked = torch, onCheckedChange = { torch = it }, modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).size(44.dp),
+                    colors = IconButtonDefaults.filledIconToggleButtonColors(containerColor = Background.copy(alpha = .72f), contentColor = Ink, checkedContainerColor = Apricot, checkedContentColor = Background)) {
+                    Icon(if (torch) Icons.Outlined.FlashOn else Icons.Outlined.FlashOff, if (torch) T.text("Licht ausschalten") else T.text("Licht einschalten"), Modifier.size(20.dp))
                 }
             }
-            Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().background(Background.copy(alpha = .7f)).padding(horizontal = 24.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(T.text("Barcode ausrichten · zum Fokussieren tippen"), style = MaterialTheme.typography.bodySmall)
-                Slider(value = zoom, onValueChange = { zoom = it }, valueRange = 0f..1f,
-                    modifier = Modifier.height(32.dp), enabled = camera != null,
-                    thumb = { Box(Modifier.size(14.dp).background(Apricot, CircleShape)) },
-                    track = { SliderDefaults.Track(sliderState = it, modifier = Modifier.height(4.dp)) })
+            Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Background.copy(alpha = .88f))))
+                .padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(T.text("Barcode ausrichten · zum Fokussieren tippen"), style = MaterialTheme.typography.bodySmall, color = Ink.copy(alpha = .85f), textAlign = TextAlign.Center)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.ZoomOut, null, tint = Muted, modifier = Modifier.size(18.dp))
+                    Slider(value = zoom, onValueChange = { zoom = it }, valueRange = 0f..1f,
+                        modifier = Modifier.weight(1f).height(36.dp).padding(horizontal = 8.dp), enabled = camera != null,
+                        thumb = { Box(Modifier.size(16.dp).background(Apricot, CircleShape)) },
+                        track = { SliderDefaults.Track(sliderState = it, modifier = Modifier.height(4.dp), thumbTrackGapSize = 0.dp, drawStopIndicator = null,
+                            colors = SliderDefaults.colors(activeTrackColor = Apricot, inactiveTrackColor = Ink.copy(alpha = .18f))) })
+                    Icon(Icons.Outlined.ZoomIn, null, tint = Muted, modifier = Modifier.size(18.dp))
+                }
             }
         } else {
-            Column(Modifier.align(Alignment.Center).padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(Icons.Outlined.CameraAlt, null, tint = Apricot, modifier = Modifier.size(38.dp))
-                Text(if (!permission) T.text("Kamera freigeben") else T.text("Kamera nicht verfügbar"), style = MaterialTheme.typography.titleMedium)
-                Text(cameraError ?: T.text("Die Kamera wird nur zum Lesen von Barcodes verwendet. Es werden keine Kamerabilder gespeichert oder hochgeladen."), color = Muted, style = MaterialTheme.typography.bodyMedium)
-                Button(onClick = {
+            Column(Modifier.align(Alignment.Center).fillMaxWidth().padding(horizontal = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.size(76.dp).background(Field, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.CameraAlt, null, tint = Apricot, modifier = Modifier.size(34.dp))
+                }
+                Spacer(Modifier.height(20.dp))
+                Text(if (!permission) T.text("Kamera freigeben") else T.text("Kamera nicht verfügbar"), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(8.dp))
+                Text(cameraError ?: T.text("Die Kamera wird nur zum Lesen von Barcodes verwendet. Es werden keine Kamerabilder gespeichert oder hochgeladen."),
+                    color = Muted, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(22.dp))
+                PrimaryButton(if (permission) T.text("Erneut versuchen") else T.text("Kamera erlauben"), {
                     if (permission) { cameraError = null; retry++ }
                     else launcher.launch(Manifest.permission.CAMERA)
-                }) { Text(if (permission) T.text("Erneut versuchen") else T.text("Kamera erlauben")) }
-                if (!permission) TextButton(onClick = {
-                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
-                }) { Text(T.text("App-Einstellungen öffnen")) }
+                }, Modifier.fillMaxWidth(.8f), icon = if (permission) Icons.Outlined.Refresh else Icons.Outlined.CameraAlt)
+                if (!permission) {
+                    Spacer(Modifier.height(6.dp))
+                    TextButton(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                    }) { Text(T.text("App-Einstellungen öffnen"), style = MaterialTheme.typography.labelLarge, color = Muted) }
+                }
             }
         }
     }

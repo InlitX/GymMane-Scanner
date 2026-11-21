@@ -23,6 +23,8 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.style.TextAlign
 import de.gymmane.scanner.ui.theme.*
 
 @Composable
@@ -81,10 +83,15 @@ fun MotionError(message: String?, visibility: androidx.compose.animation.core.Mu
 @Composable
 fun EmptyCard(icon: ImageVector, title: String, text: String, modifier: Modifier = Modifier, action: @Composable () -> Unit) {
     Surface(modifier = modifier, color = Surface, shape = RoundedCornerShape(28.dp)) {
-        Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Icon(icon, null, tint = Apricot, modifier = Modifier.size(36.dp))
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(text, color = Muted, style = MaterialTheme.typography.bodyMedium)
+        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(64.dp).background(Field, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = Apricot, modifier = Modifier.size(28.dp))
+            }
+            Spacer(Modifier.height(16.dp))
+            Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(6.dp))
+            Text(text, color = Muted, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(18.dp))
             action()
         }
     }
@@ -98,7 +105,7 @@ fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
         colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Background), shape = RoundedCornerShape(50)) {
         if (icon != null) { Icon(icon, null, Modifier.size(19.dp)); Spacer(Modifier.width(10.dp)) }
         Crossfade(text, animationSpec = Motion.spec(), label = "buttonLabel") {
-            Text(it, fontWeight = FontWeight.SemiBold)
+            Text(it, style = MaterialTheme.typography.labelLarge)
         }
     }
 }

@@ -144,4 +144,5 @@
     <string name="text_product_data_open_food_facts_odbl_images_cc_by_sa">Produktdaten: Open Food Facts · ODbL. Bilder: CC BY-SA.</string>
     <string name="text_could_not_share_this_food_please_try_again">Das Lebensmittel konnte nicht geteilt werden. Bitte erneut versuchen.</string>
     <string name="text_share_with_gymmane_t137">Mit GymMane teilen</string>
+    <string name="text_history_note">Die letzten 100 gescannten Produkte und alle manuellen Einträge werden lokal gespeichert. Tippe auf ein Produkt, um seine Werte zu kopieren.</string>
 </resources>
