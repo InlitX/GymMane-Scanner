@@ -23,6 +23,12 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import de.gymmane.scanner.BuildConfig
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material.icons.outlined.QrCodeScanner
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import de.gymmane.scanner.i18n.T
 import de.gymmane.scanner.ui.theme.*
 
@@ -64,19 +70,52 @@ fun LanguageChoices(language: String, onLanguage: (String) -> Unit) {
 fun OnboardingScreen(language: String, onLanguage: (String) -> Unit, onContinue: () -> Unit) {
     Surface(Modifier.fillMaxSize(), color = Background, contentColor = Ink) {
     ScreenEntrance("onboarding") {
-    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
-        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-            Text("GymMane Scanner", color = Apricot, style = MaterialTheme.typography.titleMedium)
+    Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp)) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(top = 16.dp)) {
+            Box(Modifier.size(60.dp).background(Surface, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(Icons.Outlined.QrCodeScanner, null, tint = Apricot, modifier = Modifier.size(28.dp))
+            }
+            Spacer(Modifier.height(22.dp))
+            Text("GymMane Scanner".uppercase(java.util.Locale.ROOT), color = Apricot, style = MaterialTheme.typography.labelSmall)
+            Spacer(Modifier.height(6.dp))
             Text(T.text("Scannen. Prüfen. Teilen."), style = MaterialTheme.typography.headlineLarge)
-            Text(T.text("Finde Nährwerte per Barcode und teile das Lebensmittel direkt mit GymMane."), color = Muted)
-            SectionLabel(T.text("Sprache"))
+            Spacer(Modifier.height(10.dp))
+            Text(T.text("Finde Nährwerte per Barcode und teile das Lebensmittel direkt mit GymMane."), color = Muted, style = MaterialTheme.typography.bodyLarge)
+            Spacer(Modifier.height(24.dp))
+            Surface(color = Surface, shape = RoundedCornerShape(24.dp)) {
+                Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    OnboardingStep(Icons.Outlined.QrCodeScanner, T.text("Barcode scannen"))
+                    OnboardingDivider()
+                    OnboardingStep(Icons.AutoMirrored.Outlined.FactCheck, T.text("Werte prüfen"))
+                    OnboardingDivider()
+                    OnboardingStep(Icons.Outlined.IosShare, T.text("Mit GymMane teilen"), T.text("Nach dem Scan öffnet sich der Teilen-Dialog. Wähle GymMane zum Einfügen."))
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+            SectionLabel(T.text("Sprache"), Modifier.padding(start = 4.dp, bottom = 10.dp))
             LanguageChoices(language, onLanguage)
-            Text(T.text("Nach dem Scan öffnet sich der Teilen-Dialog. Wähle GymMane zum Einfügen."), color = Muted, style = MaterialTheme.typography.bodyMedium)
         }
-        PrimaryButton(T.text("Loslegen"), onContinue, Modifier.fillMaxWidth().padding(top = 20.dp))
+        PrimaryButton(T.text("Loslegen"), onContinue, Modifier.fillMaxWidth().padding(top = 16.dp), icon = Icons.AutoMirrored.Outlined.ArrowForward)
     }
     }
     }
+}
+
+@Composable
+private fun OnboardingStep(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String? = null) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) { Icon(icon, null, tint = Apricot, modifier = Modifier.size(20.dp)) }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            if (subtitle != null) Text(subtitle, color = Muted, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 2.dp))
+        }
+    }
+}
+
+@Composable
+private fun OnboardingDivider() {
+    HorizontalDivider(Modifier.padding(start = 58.dp, end = 16.dp), color = Outline.copy(alpha = .6f))
 }
 
 @Composable

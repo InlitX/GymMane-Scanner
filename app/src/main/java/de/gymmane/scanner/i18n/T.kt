@@ -19,6 +19,7 @@ object T {
     }
     private val ids = mapOf(
         "Barcode scannen" to R.string.text_scan_barcode,
+        "Werte prüfen" to R.string.text_check_values,
         "Barcode in den Rahmen halten" to R.string.text_place_the_barcode_inside_the_frame,
         "Produkt wird gesucht \u2026" to R.string.text_finding_product,
         "Erneut suchen" to R.string.text_try_again,

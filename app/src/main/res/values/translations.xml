@@ -1,5 +1,6 @@
 <resources>
     <string name="text_scan_barcode">Barcode scannen</string>
+    <string name="text_check_values">Werte prüfen</string>
     <string name="text_place_the_barcode_inside_the_frame">Barcode in den Rahmen halten</string>
     <string name="text_finding_product">Produkt wird gesucht …</string>
     <string name="text_try_again">Erneut suchen</string>
