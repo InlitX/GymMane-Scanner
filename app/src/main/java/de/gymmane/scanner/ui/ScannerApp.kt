@@ -173,11 +173,11 @@ fun ScannerApp(viewModel: ScannerViewModel, updates: UpdateViewModel) {
         }
     }
     UpdateOffer(updates, allowed = !state.loading && state.pendingSend == null && state.screen != Screen.MANUAL && state.correction == null)
-    MotionDialog(state.correction?.let { it to state.correctionError }) { correction, motion -> AlertDialog(modifier = motion,onDismissRequest = viewModel::dismissCorrection,
+    MotionDialog(state.correction?.let { it to state.correctionError }) { correction, motion -> AlertDialog(modifier = motion, containerColor = Surface, textContentColor = Muted, onDismissRequest = viewModel::dismissCorrection,
         title = { Text(T.text("Angaben für GymMane ergänzen")) },
         text = { Text(T.text(correction.second.orEmpty())) },
-        confirmButton = { TextButton(onClick = viewModel::editForSending) { Text(T.text("Werte bearbeiten")) } },
-        dismissButton = { TextButton(onClick = viewModel::dismissCorrection) { Text(T.text("Abbrechen")) } })
+        confirmButton = { DialogConfirm(T.text("Werte bearbeiten"), viewModel::editForSending) },
+        dismissButton = { DialogDismiss(T.text("Abbrechen"), viewModel::dismissCorrection) })
     }
 }
 

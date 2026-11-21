@@ -159,3 +159,19 @@ fun PillSwitch(labels: List<String>, selected: Int, onSelect: (Int) -> Unit, mod
         }
     }
 }
+
+@Composable
+fun DialogConfirm(text: String, onClick: () -> Unit, enabled: Boolean = true) {
+    Button(onClick, enabled = enabled, shape = RoundedCornerShape(50), contentPadding = PaddingValues(horizontal = 20.dp),
+        modifier = Modifier.heightIn(min = 44.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Ink, contentColor = Background, disabledContainerColor = Field, disabledContentColor = Muted)) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@Composable
+fun DialogDismiss(text: String, onClick: () -> Unit) {
+    TextButton(onClick, modifier = Modifier.heightIn(min = 44.dp), colors = ButtonDefaults.textButtonColors(contentColor = Muted)) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
+    }
+}

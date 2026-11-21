@@ -3,6 +3,10 @@ package de.gymmane.scanner.updates
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
@@ -84,22 +88,22 @@ fun UpdateSettings(viewModel: UpdateViewModel) {
 fun UpdateOffer(viewModel: UpdateViewModel, allowed: Boolean) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     MotionDialog(state.offer?.takeIf { allowed }) { release, motion ->
-        AlertDialog(modifier = motion, onDismissRequest = viewModel::later,
+        AlertDialog(modifier = motion, containerColor = Surface, onDismissRequest = viewModel::later,
             title = { Text(stringResource(R.string.update_available, release.tag)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     SectionLabel(stringResource(R.string.update_whats_new))
                     Text(release.notes.ifBlank { stringResource(R.string.update_no_notes) }.take(30_000),
-                        Modifier.heightIn(max = 280.dp).verticalScroll(rememberScrollState()))
+                        Modifier.heightIn(max = 280.dp).verticalScroll(rememberScrollState()), color = Muted, style = MaterialTheme.typography.bodyMedium)
                     if (state.downloading) {
-                        LinearProgressIndicator(progress = { state.progress }, modifier = Modifier.fillMaxWidth())
+                        LinearProgressIndicator(progress = { state.progress }, modifier = Modifier.fillMaxWidth(), color = Apricot, trackColor = Field)
                         Text(stringResource(R.string.update_downloading), style = MaterialTheme.typography.bodySmall)
                     }
                     state.downloadError?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }
                 }
             },
-            confirmButton = { TextButton(viewModel::update, enabled = !state.downloading) { Text(stringResource(R.string.update_action)) } },
-            dismissButton = { TextButton(viewModel::later) { Text(stringResource(R.string.update_later)) } })
+            confirmButton = { DialogConfirm(stringResource(R.string.update_action), viewModel::update, enabled = !state.downloading) },
+            dismissButton = { DialogDismiss(stringResource(R.string.update_later), viewModel::later) })
     }
 }
 
@@ -107,12 +111,20 @@ fun UpdateOffer(viewModel: UpdateViewModel, allowed: Boolean) {
 fun WhatsNewScreen(state: UpdateState, onContinue: () -> Unit) {
     Surface(Modifier.fillMaxSize(), color = Background, contentColor = Ink) {
         ScreenEntrance("whats-new") {
-            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) {
+            Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 16.dp)) {
+                Box(Modifier.padding(top = 16.dp).size(60.dp).background(Surface, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.AutoAwesome, null, tint = Apricot, modifier = Modifier.size(28.dp))
+                }
+                Text(("GymMane Scanner " + BuildConfig.VERSION_NAME).uppercase(java.util.Locale.ROOT), color = Apricot,
+                    style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 22.dp, bottom = 6.dp))
                 Text(stringResource(R.string.update_whats_new), style = MaterialTheme.typography.headlineLarge)
-                Text(BuildConfig.VERSION_NAME, color = Apricot, modifier = Modifier.padding(top = 8.dp, bottom = 24.dp))
-                Text(state.notes?.takeIf { it.isNotBlank() }?.take(30_000) ?: stringResource(R.string.update_local_notes),
-                    Modifier.weight(1f).verticalScroll(rememberScrollState()))
-                PrimaryButton(stringResource(R.string.update_done), onContinue, Modifier.fillMaxWidth().padding(top = 20.dp))
+                Box(Modifier.fillMaxWidth().weight(1f).padding(top = 20.dp)) {
+                    Surface(Modifier.fillMaxWidth(), color = Surface, shape = RoundedCornerShape(24.dp)) {
+                        Text(state.notes?.takeIf { it.isNotBlank() }?.take(30_000) ?: stringResource(R.string.update_local_notes),
+                            Modifier.verticalScroll(rememberScrollState()).padding(20.dp), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                PrimaryButton(stringResource(R.string.update_done), onContinue, Modifier.fillMaxWidth().padding(top = 16.dp))
             }
         }
     }
