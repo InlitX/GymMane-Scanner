@@ -39,11 +39,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.common.Barcode as MlBarcode
-import com.google.mlkit.vision.common.InputImage
-import de.gymmane.scanner.domain.Barcode
+import de.gymmane.scanner.domain.BarcodeDecoder
 import de.gymmane.scanner.ui.theme.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
@@ -137,7 +133,6 @@ fun CameraScanner(enabled: Boolean, onBarcode: (String) -> Unit, modifier: Modif
     }
 }
 
-@androidx.annotation.OptIn(ExperimentalGetImage::class)
 @Composable
 private fun CameraPreview(
     enabled: Boolean,
@@ -158,33 +153,22 @@ private fun CameraPreview(
         val disposed = AtomicBoolean(false)
         val executor = Executors.newSingleThreadExecutor()
         val main = ContextCompat.getMainExecutor(context)
-        val scanner = BarcodeScanning.getClient(BarcodeScannerOptions.Builder().setBarcodeFormats(
-            MlBarcode.FORMAT_EAN_8, MlBarcode.FORMAT_EAN_13, MlBarcode.FORMAT_UPC_A, MlBarcode.FORMAT_UPC_E).build())
+        val decoder = BarcodeDecoder()
         val preview = Preview.Builder().build().also { it.surfaceProvider = previewView.surfaceProvider }
         val analysis = ImageAnalysis.Builder().setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setResolutionSelector(ResolutionSelector.Builder().setResolutionStrategy(
                 ResolutionStrategy(android.util.Size(1280, 720), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER)).build()).build()
         var provider: ProcessCameraProvider? = null
-        var failures = 0
         analysis.setAnalyzer(executor) { proxy ->
-            val image = proxy.image
-            if (disposed.get() || !latestEnabled || delivered.get() || image == null) { proxy.close() }
-            else {
-                try {
-                    scanner.process(InputImage.fromMediaImage(image, proxy.imageInfo.rotationDegrees))
-                        .addOnSuccessListener(main) { barcodes ->
-                            if (!disposed.get() && latestEnabled) {
-                                failures = 0
-                                val code = barcodes.mapNotNull { barcode ->
-                                    barcode.rawValue?.let { if (barcode.format == MlBarcode.FORMAT_UPC_E) Barcode.expandUpcE(it) else Barcode.normalize(it) }
-                                }.firstOrNull()
-                                if (code != null && delivered.compareAndSet(false, true)) latestBarcode(code)
-                            }
-                        }.addOnFailureListener(main) {
-                            if (!disposed.get() && ++failures >= 5) latestError(T.text("Die Barcode-Erkennung konnte nicht gestartet werden. Bitte Kamera erneut öffnen oder den Code eintippen."))
-                        }.addOnCompleteListener { proxy.close() }
-                } catch (_: Exception) { proxy.close() }
-            }
+            try {
+                if (!disposed.get() && latestEnabled && !delivered.get()) {
+                    val code = decoder.decode(proxy.luminance(), proxy.width, proxy.height, proxy.imageInfo.rotationDegrees)
+                    if (code != null) main.execute {
+                        if (!disposed.get() && latestEnabled && delivered.compareAndSet(false, true)) latestBarcode(code)
+                    }
+                }
+            } catch (_: Exception) {
+            } finally { proxy.close() }
         }
         val future = ProcessCameraProvider.getInstance(context)
         future.addListener({
@@ -210,11 +194,30 @@ private fun CameraPreview(
             analysis.clearAnalyzer()
             provider?.unbind(preview, analysis)
             onCamera(null)
-            scanner.close()
             executor.shutdown()
         }
     }
     LaunchedEffect(enabled) {
         if (enabled) delivered.set(false)
     }
+}
+
+/** Copies the Y (brightness) plane into a tight width x height array, dropping row padding. */
+private fun ImageProxy.luminance(): ByteArray {
+    val plane = planes[0]
+    val buffer = plane.buffer.duplicate().apply { rewind() }
+    val rowStride = plane.rowStride
+    val pixelStride = plane.pixelStride
+    val out = ByteArray(width * height)
+    if (pixelStride == 1 && rowStride == width) {
+        buffer.get(out, 0, out.size)
+        return out
+    }
+    val row = ByteArray(rowStride)
+    for (y in 0 until height) {
+        buffer.position(y * rowStride)
+        buffer.get(row, 0, minOf(rowStride, buffer.remaining()))
+        for (x in 0 until width) out[y * width + x] = row[x * pixelStride]
+    }
+    return out
 }
