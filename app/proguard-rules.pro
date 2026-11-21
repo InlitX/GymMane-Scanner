@@ -1,1 +1,1 @@
-# ML Kit and OkHttp ship their own consumer rules. Models use no reflection.
+# OkHttp ships its own consumer rules. ZXing uses no reflection.
