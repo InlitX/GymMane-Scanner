@@ -146,4 +146,5 @@
     <string name="text_could_not_share_this_food_please_try_again">Could not share this food. Please try again.</string>
     <string name="text_share_with_gymmane_t137">Share with GymMane</string>
     <string name="text_history_note">The last 100 scanned products and all manual entries are stored on this device. Tap a product to copy its values.</string>
+    <string name="text_send_values_only">Send values only</string>
 </resources>

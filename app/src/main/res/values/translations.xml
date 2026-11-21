@@ -146,4 +146,5 @@
     <string name="text_could_not_share_this_food_please_try_again">Das Lebensmittel konnte nicht geteilt werden. Bitte erneut versuchen.</string>
     <string name="text_share_with_gymmane_t137">Mit GymMane teilen</string>
     <string name="text_history_note">Die letzten 100 gescannten Produkte und alle manuellen Einträge werden lokal gespeichert. Tippe auf ein Produkt, um seine Werte zu kopieren.</string>
+    <string name="text_send_values_only">Nur Nährwerte senden</string>
 </resources>
